@@ -5,12 +5,13 @@
 #include <QIcon>
 #include <QFileInfo>
 #include <QMimeData>
+#include <QFont>
 
 //--------------------------------------------------------------------------------------------------
 //	CLASS: QExecutableModelPrivate
 //--------------------------------------------------------------------------------------------------
 /// @brief		Private data of QExecutable Model
-/// @details	
+/// @details
 //--------------------------------------------------------------------------------------------------
 class QExecutableModelPrivate
 {
@@ -76,9 +77,25 @@ Q_INVOKABLE QVariant QExecutableModel::data(const QModelIndex &index, int role /
 
 	switch (role)
 	{
+	case Qt::FontRole:
+		if(index.column() == NameColumn && itr->filter.length() > 0)
+		{
+			QFont font;
+			font.setBold(true);
+			return font;
+		}
+		else
+			return QVariant();
+	case Qt::ForegroundRole:
+		if(index.column() == NameColumn && itr->filter.length() > 0)
+		{
+			return QVariant( QColor( Qt::blue ) );
+		}
+		else
+			return QVariant();
 	case Qt::DecorationRole:
- 		if(index.column() == NameColumn)
- 		{
+		if(index.column() == NameColumn)
+		{
 			switch (data(index, StateRole).toInt())
 			{
 			case ExecutableData::NOT_RUNNING:
@@ -98,7 +115,9 @@ Q_INVOKABLE QVariant QExecutableModel::data(const QModelIndex &index, int role /
 				break;
 			}
 			break;
-		} 
+		}
+		else
+			return QVariant();
 	case Qt::DisplayRole:
 		switch (index.column())
 		{
@@ -148,6 +167,9 @@ Q_INVOKABLE QVariant QExecutableModel::data(const QModelIndex &index, int role /
 			name.append(" (Release)");
 		else if (itr->path.contains("MinSizeRel"))
 			name.append(" (MinSizeRel)");
+		if (itr->filter.length()>0) {
+			name = "(Filtered) " + name;
+		}
 		return name;
 	default:
 		return QVariant();
@@ -215,7 +237,7 @@ QModelIndex QExecutableModel::index(const QString& path) const
 // 	if(d_ptr->indexCache.contains(path))
 // 	{
 // 		QModelIndex index = d_ptr->indexCache[path];
-// 
+//
 // 		// check the cache to see if we know the index
 // 		if (index.isValid())
 // 		{
@@ -229,7 +251,7 @@ QModelIndex QExecutableModel::index(const QString& path) const
 
 	auto itr = std::find(begin(), end(), path);
 	QModelIndex index = iteratorToIndex(itr);
-		
+
 	// cache for later use
 	d_ptr->indexCache[path] = index;
 
@@ -265,7 +287,7 @@ QMimeData * QExecutableModel::mimeData(const QModelIndexList &indexes) const
 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
 	foreach(const QModelIndex &index, indexes) {
-		if (index.isValid() && index.column() == 0) 
+		if (index.isValid() && index.column() == 0)
 		{
 			QVariant PathRoleText = data(index, PathRole);
 			QVariant StateRoleText = data(index, StateRole);
@@ -424,7 +446,7 @@ Qt::ItemFlags QExecutableModel::flags(const QModelIndex &index) const
 
 	switch (index.column())
 	{
-	case NameColumn: 
+	case NameColumn:
 		f |= Qt::ItemIsUserCheckable;
 		break;
 	default:
