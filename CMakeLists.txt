@@ -89,6 +89,7 @@ if(MSVC)
 	add_compile_options(/MP)
 elseif(CMAKE_COMPILER_IS_GNUCXX)
 	add_compile_options(-std=c++14)
+	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif(MSVC)
 
 #-------------------------------------------------------------------------------
